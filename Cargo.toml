@@ -1,7 +1,16 @@
 [package]
 name = "rsvd"
-version = "0.1.0"
+version = "0.1.1"
+authors = ["Erik Garrison <erik.garrison@gmail.com>"]
 edition = "2021"
+description = "randomized singular value decomposition (rSVD)"
+license = "MIT"
+repository = "https://github.com/ekg/rsvd"
+readme = "README.md"
+keywords = ["statistics", "SVD", "rSVD"]
+categories = ["science"]
+documentation = "https://docs.rs/rsvd"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
