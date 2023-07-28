@@ -33,7 +33,7 @@ let a = array!([1., 2., 3.],
                [8., 9., 4.],
                [7., 6., 5.]);
 
-let (u, s, vt) = rsvd(&a, 2, 0);
+let (u, s, vt) = rsvd(&a, 2, 0, None);
 ```
 
 ## Applications

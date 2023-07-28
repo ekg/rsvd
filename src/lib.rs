@@ -7,6 +7,9 @@ use ndarray_linalg::QR;
 use ndarray_linalg::svd::SVD;
 use rand::{thread_rng, Rng};
 use rand_distr::Normal;
+use rand::SeedableRng;
+use rand_chacha::ChaCha8Rng;
+
 
 /// Calculate a randomized SVD approximation of a matrix.
 ///
@@ -31,16 +34,23 @@ use rand_distr::Normal;
 /// use rsvd::rsvd;
 ///
 /// let a = Array2::from_shape_vec((3, 3), vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]).unwrap();
-/// let (u, s, vt) = rsvd(&a, 2, 1);
+/// let (u, s, vt) = rsvd(&a, 2, 1, None);
 /// ```
-pub fn rsvd(input: &Array2<f64>, k: usize, p: usize) -> (Array2<f64>, Array2<f64>, Array2<f64>) {
+pub fn rsvd(input: &Array2<f64>, k: usize, p: usize, seed: Option<u64>) -> (Array2<f64>, Array2<f64>, Array2<f64>) {
     //let m = input.shape()[0];
     let n = input.shape()[1];
+
+    // handle the seed, which could be None
+    // if it's None, we should use whatever default seeding is used by the RNG
+    let rng = match seed {
+        Some(s) => ChaCha8Rng::seed_from_u64(s),
+        None => ChaCha8Rng::from_rng(thread_rng()).unwrap(),
+    };
 
     // Generate Gaussian random test matrix
     let l = k + p; // Oversampling
     let omega = {
-    let vec = thread_rng().sample_iter(Normal::new(0.0, 1.0).unwrap())
+        let vec = rng.sample_iter(Normal::new(0.0, 1.0).unwrap())
         .take(l * n)
         .collect::<Vec<_>>();
         ndarray::Array::from_shape_vec((n, l), vec).unwrap()
@@ -72,8 +82,6 @@ pub fn rsvd(input: &Array2<f64>, k: usize, p: usize) -> (Array2<f64>, Array2<f64
 mod tests {
     use super::*;
     use ndarray::Array2;
-    use rand::SeedableRng;
-    use rand_chacha::ChaCha8Rng;
 
     // input a dimension, a seed, and a tolerance
     // we make a random matrix to match
@@ -85,7 +93,7 @@ mod tests {
         let a = Array2::from_shape_fn((m, n), |_| rng.gen::<f64>());
 
         // Compute rank approximation
-        let (u, s, vt) = rsvd(&a, k, p);
+        let (u, s, vt) = rsvd(&a, k, p, Some(1337));
 
         let (Some(u2), s2, Some(vt2)) = a.svd(true, true).unwrap()
         else { panic!("SVD failed"); };
